@@ -1,11 +1,10 @@
+import usuario from "@/data/usuario.json";
+import { getNotificationSettings, saveNotificationSettings } from "@/services/notificationSettingsService";
 import { NotificationSettings } from "@/types/notifications";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { ArrowLeft, Bell } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { ScrollView, Switch, Text, TouchableOpacity, View } from "react-native";
-
-const NOTIFICATION_SETTINGS_KEY = "notification_settings";
 
 export default function ConfiguracoesNotificacoes() {
   const router = useRouter();
@@ -16,14 +15,12 @@ export default function ConfiguracoesNotificacoes() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Carregar configurações salvas
+  // Carregar configurações salvas do usuário
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const saved = await AsyncStorage.getItem(NOTIFICATION_SETTINGS_KEY);
-        if (saved) {
-          setSettings(JSON.parse(saved));
-        }
+        const loaded = await getNotificationSettings(usuario.id);
+        setSettings(loaded);
       } catch (error) {
         console.error("Erro ao carregar configurações:", error);
       } finally {
@@ -37,11 +34,10 @@ export default function ConfiguracoesNotificacoes() {
   // Salvar configurações sempre que mudam
   const saveSettings = async (newSettings: NotificationSettings) => {
     try {
-      await AsyncStorage.setItem(
-        NOTIFICATION_SETTINGS_KEY,
-        JSON.stringify(newSettings)
-      );
-      setSettings(newSettings);
+      const success = await saveNotificationSettings(newSettings, usuario.id);
+      if (success) {
+        setSettings(newSettings);
+      }
     } catch (error) {
       console.error("Erro ao salvar configurações:", error);
     }
